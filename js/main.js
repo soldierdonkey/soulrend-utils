@@ -1,19 +1,37 @@
 /**
- * Processes incoming data stream variants to sync views cleanly
+ * Processes incoming data stream configurations to sync views cleanly
  */
 function updatePreview() {
-    const editorBox = document.getElementById('editor-box');
-    const textValue = editorBox.value;
+    const titleText = document.getElementById('input-title').value;
+    const subtitleText = document.getElementById('input-subtitle').value;
+    const bodyText = document.getElementById('editor-box').value;
     
-    document.getElementById('char-counter').innerText = `Characters: ${textValue.length}`;
+    // Updates character counter logic globally across inputs
+    const aggregateLength = titleText.length + subtitleText.length + bodyText.length;
+    document.getElementById('char-counter').innerText = `Characters: ${aggregateLength}`;
 
-    const parsedHTML = parseMinecraft(textValue, currentTheme);
-    document.getElementById('preview-tooltip').innerHTML = parsedHTML || `<span class="text-slate-500 italic">No content. Start editing...</span>`;
-    document.getElementById('preview-chat').innerHTML = parsedHTML || `<span class="text-slate-500 italic">No chat stream lines...</span>`;
-    document.getElementById('preview-parchment').innerHTML = parsedHTML || `<span class="text-slate-700/50 italic">Empty page...</span>`;
+    // 1. Tooltip Context Generation
+    document.getElementById('preview-tooltip-title').innerHTML = parseMinecraft(titleText, 'tooltip') || 'Unnamed Component';
+    document.getElementById('preview-tooltip-subtitle').innerHTML = parseMinecraft(subtitleText, 'tooltip') || 'No Metadata';
+    document.getElementById('preview-tooltip').innerHTML = parseMinecraft(bodyText, 'tooltip') || `<span class="text-slate-500 italic">No description provided...</span>`;
 
-    document.getElementById('export-code-kubejs').textContent = generateKubeJSExport(textValue);
-    document.getElementById('export-code-json').textContent = generateJSONExport(textValue);
+    // 2. Chat Window Sync Mechanics
+    document.getElementById('preview-chat-status').innerHTML = parseMinecraft(subtitleText, 'chat') || '<span class="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-ping"></span> Live Server Stream';
+    document.getElementById('preview-chat').innerHTML = parseMinecraft(bodyText, 'chat') || `<span class="text-slate-500 italic">No console text buffers...</span>`;
+
+    // 3. Chronicle Parchment Configuration
+    document.getElementById('preview-parchment-title').innerHTML = parseMinecraft(titleText, 'parchment') || 'Chapter Genesis';
+    document.getElementById('preview-parchment-subtitle').innerHTML = parseMinecraft(subtitleText, 'parchment') || 'Page I';
+    document.getElementById('preview-parchment').innerHTML = parseMinecraft(bodyText, 'parchment') || `<span class="text-slate-700/50 italic">Empty page layout lines...</span>`;
+
+    // 4. Combined Exporter Pipeline Configuration
+    let combinedExportSource = "";
+    if(titleText) combinedExportSource += titleText + "\n";
+    if(subtitleText) combinedExportSource += subtitleText + "\n";
+    combinedExportSource += bodyText;
+
+    document.getElementById('export-code-kubejs').textContent = generateKubeJSExport(combinedExportSource);
+    document.getElementById('export-code-json').textContent = generateJSONExport(combinedExportSource);
 }
 
 // Obfuscated ticker routine loop
@@ -35,12 +53,15 @@ setInterval(() => {
     });
 }, 80);
 
-// Initialize interaction hooks
+// Initialize application initialization steps
 window.onload = function() {
     const resizer = document.getElementById('drag-resizer');
-    const editorBox = document.getElementById('editor-box');
+    
+    // Add event bindings manually across configured targets
+    document.getElementById('input-title').addEventListener('input', updatePreview);
+    document.getElementById('input-subtitle').addEventListener('input', updatePreview);
+    document.getElementById('editor-box').addEventListener('input', updatePreview);
 
-    editorBox.addEventListener('input', updatePreview);
     resizer.addEventListener('mousedown', startResize);
     resizer.addEventListener('touchstart', startResize, { passive: true });
 
@@ -50,6 +71,11 @@ window.onload = function() {
     window.addEventListener('touchend', stopResize);
     window.addEventListener('resize', handleWindowResize);
 
-    loadTemplate('feral');
+    // Initial default layout deployment entries
+    document.getElementById('input-title').value = defaultConfiguration.title;
+    document.getElementById('input-subtitle').value = defaultConfiguration.subtitle;
+    document.getElementById('editor-box').value = defaultConfiguration.body;
+    
+    updatePreview();
     handleWindowResize();
 };

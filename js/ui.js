@@ -2,6 +2,22 @@ let currentTheme = 'tooltip';
 let currentExportTab = 'kubejs';
 let isResizing = false;
 let lastActiveWidthPct = 50;
+let isExportMinimized = false; // Minimization tracking configuration flag
+
+function toggleExportSystem() {
+    const content = document.getElementById('export-content-area');
+    const icon = document.getElementById('export-toggle-icon');
+    
+    isExportMinimized = !isExportMinimized;
+    
+    if (isExportMinimized) {
+        content.classList.add('hidden');
+        icon.className = "fa-solid fa-chevron-up";
+    } else {
+        content.classList.remove('hidden');
+        icon.className = "fa-solid fa-chevron-down";
+    }
+}
 
 function switchTheme(theme) {
     currentTheme = theme;
@@ -55,16 +71,11 @@ function injectFormat(tag) {
     updatePreview();
 }
 
-function clearEditor() {
+function clearAllFields() {
+    document.getElementById('input-title').value = '';
+    document.getElementById('input-subtitle').value = '';
     document.getElementById('editor-box').value = '';
     updatePreview();
-}
-
-function loadTemplate(key) {
-    if (templates[key]) {
-        document.getElementById('editor-box').value = templates[key];
-        updatePreview();
-    }
 }
 
 function showToast(message) {
@@ -80,7 +91,6 @@ function showToast(message) {
     }, 3000);
 }
 
-// Resizing Engine Core Utilities
 function startResize(e) {
     if (window.innerWidth < 768) return;
     isResizing = true;
