@@ -36,3 +36,15 @@ textarea {
 .prevent-select {
     user-select: none;
 }
+
+/* Smooth Scrolling Card Preview Image Effect */
+.preview-scroll-image {
+    object-fit: cover;
+    object-position: top;
+    transition: object-position 4s ease-in-out;
+}
+
+/* Trigger vertical panning scroll when the container card row item grid entry is hovered */
+.group:hover .preview-scroll-image {
+    object-position: bottom;
+}

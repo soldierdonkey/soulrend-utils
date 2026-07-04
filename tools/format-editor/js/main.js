@@ -1,7 +1,8 @@
 /**
  * Processes incoming data stream configurations to sync views cleanly
+ * Takes an optional skipElementId parameter to protect the cursor focus state of an active editor layer
  */
-function updatePreview() {
+function updatePreview(skipElementId) {
     const titleText = document.getElementById('input-title').value;
     const subtitleText = document.getElementById('input-subtitle').value;
     const bodyText = document.getElementById('editor-box').value;
@@ -11,18 +12,34 @@ function updatePreview() {
     document.getElementById('char-counter').innerText = `Characters: ${aggregateLength}`;
 
     // 1. Tooltip Context Generation
-    document.getElementById('preview-tooltip-title').innerHTML = parseMinecraft(titleText, 'tooltip') || 'Unnamed Component';
-    document.getElementById('preview-tooltip-subtitle').innerHTML = parseMinecraft(subtitleText, 'tooltip') || 'No Metadata';
-    document.getElementById('preview-tooltip').innerHTML = parseMinecraft(bodyText, 'tooltip') || `<span class="text-slate-500 italic">No description provided...</span>`;
+    if (skipElementId !== 'preview-tooltip-title') {
+        document.getElementById('preview-tooltip-title').innerHTML = parseMinecraft(titleText, 'tooltip') || 'Unnamed Component';
+    }
+    if (skipElementId !== 'preview-tooltip-subtitle') {
+        document.getElementById('preview-tooltip-subtitle').innerHTML = parseMinecraft(subtitleText, 'tooltip') || 'No Metadata';
+    }
+    if (skipElementId !== 'preview-tooltip') {
+        document.getElementById('preview-tooltip').innerHTML = parseMinecraft(bodyText, 'tooltip') || `<span class="text-slate-500 italic">No description provided...</span>`;
+    }
 
     // 2. Chat Window Sync Mechanics
-    document.getElementById('preview-chat-status').innerHTML = parseMinecraft(subtitleText, 'chat') || '<span class="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-ping"></span> Live Server Stream';
-    document.getElementById('preview-chat').innerHTML = parseMinecraft(bodyText, 'chat') || `<span class="text-slate-500 italic">No console text buffers...</span>`;
+    if (skipElementId !== 'preview-chat-status') {
+        document.getElementById('preview-chat-status').innerHTML = parseMinecraft(subtitleText, 'chat') || '<span class="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-ping"></span> Live Server Stream';
+    }
+    if (skipElementId !== 'preview-chat') {
+        document.getElementById('preview-chat').innerHTML = parseMinecraft(bodyText, 'chat') || `<span class="text-slate-500 italic">No console text buffers...</span>`;
+    }
 
     // 3. Chronicle Parchment Configuration
-    document.getElementById('preview-parchment-title').innerHTML = parseMinecraft(titleText, 'parchment') || 'Chapter Genesis';
-    document.getElementById('preview-parchment-subtitle').innerHTML = parseMinecraft(subtitleText, 'parchment') || 'Page I';
-    document.getElementById('preview-parchment').innerHTML = parseMinecraft(bodyText, 'parchment') || `<span class="text-slate-700/50 italic">Empty page layout lines...</span>`;
+    if (skipElementId !== 'preview-parchment-title') {
+        document.getElementById('preview-parchment-title').innerHTML = parseMinecraft(titleText, 'parchment') || 'Chapter Genesis';
+    }
+    if (skipElementId !== 'preview-parchment-subtitle') {
+        document.getElementById('preview-parchment-subtitle').innerHTML = parseMinecraft(subtitleText, 'parchment') || 'Page I';
+    }
+    if (skipElementId !== 'preview-parchment') {
+        document.getElementById('preview-parchment').innerHTML = parseMinecraft(bodyText, 'parchment') || `<span class="text-slate-700/50 italic">Empty page layout lines...</span>`;
+    }
 
     // 4. Combined Exporter Pipeline Configuration
     let combinedExportSource = "";
@@ -58,9 +75,24 @@ window.onload = function() {
     const resizer = document.getElementById('drag-resizer');
     
     // Add event bindings manually across configured targets
-    document.getElementById('input-title').addEventListener('input', updatePreview);
-    document.getElementById('input-subtitle').addEventListener('input', updatePreview);
-    document.getElementById('editor-box').addEventListener('input', updatePreview);
+    document.getElementById('input-title').addEventListener('input', () => updatePreview());
+    document.getElementById('input-subtitle').addEventListener('input', () => updatePreview());
+    document.getElementById('editor-box').addEventListener('input', () => updatePreview());
+
+    // Connect contenteditable interactive hooks to enable comprehensive two-way sync
+    const editablePreviewIds = [
+        'preview-tooltip-title', 'preview-tooltip-subtitle', 'preview-tooltip',
+        'preview-chat-status', 'preview-chat',
+        'preview-parchment-title', 'preview-parchment-subtitle', 'preview-parchment'
+    ];
+    editablePreviewIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('input', function() {
+                triggerPreviewSync(el);
+            });
+        }
+    });
 
     resizer.addEventListener('mousedown', startResize);
     resizer.addEventListener('touchstart', startResize, { passive: true });

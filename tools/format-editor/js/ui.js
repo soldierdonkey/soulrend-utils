@@ -78,6 +78,86 @@ function clearAllFields() {
     updatePreview();
 }
 
+/**
+ * Applies a visual styling tag onto selected text nodes inside a contenteditable rendering wrapper
+ */
+function applyStyleToSelection(styleType, value) {
+    const selection = window.getSelection();
+    if (!selection.rangeCount) return;
+    
+    const range = selection.getRangeAt(0);
+    if (range.collapsed) return; // Requires an active highlight block
+    
+    let node = range.commonAncestorContainer;
+    let insidePreview = false;
+    let targetEl = null;
+    
+    while (node) {
+        if (node.nodeType === 1 && node.hasAttribute('contenteditable')) {
+            insidePreview = true;
+            targetEl = node;
+            break;
+        }
+        node = node.parentNode;
+    }
+    
+    if (!insidePreview || !targetEl) return;
+    
+    const span = document.createElement('span');
+    if (styleType === 'color') {
+        const colors = currentTheme === 'parchment' ? parchmentColors : mcColors;
+        span.style.color = colors[value] || '#ffffff';
+    } else if (styleType === 'bold') {
+        span.style.fontWeight = 'bold';
+    } else if (styleType === 'italic') {
+        span.style.fontStyle = 'italic';
+    } else if (styleType === 'underline') {
+        span.style.textDecoration = 'underline';
+    } else if (styleType === 'strikethrough') {
+        span.style.textDecoration = 'line-through';
+    } else if (styleType === 'obfuscated') {
+        span.classList.add('mc-obfuscated');
+        span.setAttribute('data-text', range.toString());
+    } else if (styleType === 'reset') {
+        span.setAttribute('data-mce-reset', 'true');
+        span.style.color = currentTheme === 'parchment' ? '#2c1d11' : '#ffffff';
+    }
+    
+    try {
+        span.appendChild(range.extractContents());
+        range.insertNode(span);
+        selection.removeAllRanges();
+    } catch (e) {
+        console.error("Two-way highlight styling failed:", e);
+    }
+    
+    triggerPreviewSync(targetEl);
+}
+
+/**
+ * Converts rich text content nodes back into native Minecraft structures and syncs left-hand form inputs
+ */
+function triggerPreviewSync(targetEl) {
+    const id = targetEl.id;
+    let mcText = convertNodeToMinecraft(targetEl, currentTheme);
+    mcText = cleanOverwrittenCodes(mcText);
+    
+    let inputEl = null;
+    if (id === 'preview-tooltip-title' || id === 'preview-parchment-title') {
+        inputEl = document.getElementById('input-title');
+    } else if (id === 'preview-tooltip-subtitle' || id === 'preview-chat-status' || id === 'preview-parchment-subtitle') {
+        inputEl = document.getElementById('input-subtitle');
+    } else if (id === 'preview-tooltip' || id === 'preview-chat' || id === 'preview-parchment') {
+        inputEl = document.getElementById('editor-box');
+    }
+    
+    if (inputEl) {
+        inputEl.value = mcText;
+    }
+    
+    updatePreview(id);
+}
+
 function showToast(message) {
     const toast = document.getElementById('toast');
     document.getElementById('toast-message').innerText = message;
