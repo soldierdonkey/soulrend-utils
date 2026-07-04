@@ -1,0 +1,38 @@
+body {
+    font-family: 'Inter', sans-serif;
+    user-select: none; /* Prevents text selection highlight artifacts during drag resizing */
+}
+
+/* Custom Minecraft Font Simulation */
+.mc-font {
+    font-family: 'VT323', monospace;
+    font-size: 1.35rem;
+    line-height: 1.2;
+    letter-spacing: 0.5px;
+    image-rendering: pixelated;
+}
+
+/* Custom Scrollbar for Dark Medieval Aesthetic */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #0f1015;
+}
+::-webkit-scrollbar-thumb {
+    background: #1e202e;
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #e11d48;
+}
+
+/* Allows typing inside textarea even with user-select active */
+textarea {
+    user-select: text !important;
+}
+
+.prevent-select {
+    user-select: none;
+}
