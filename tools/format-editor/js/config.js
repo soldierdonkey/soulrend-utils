@@ -5,6 +5,9 @@ const defaultConfiguration = {
     body: "§7This is a baseline configuration setup.\n§cModify the input text fields to configure custom components."
 };
 
+// Animation settings
+const OBFUSCATION_SPEED = 25;
+
 const mcColors = {
     '0': '#000000', '1': '#0000aa', '2': '#00aa00', '3': '#00aaaa',
     '4': '#aa0000', '5': '#aa00aa', '6': '#ffaa00', '7': '#aaaaaa',

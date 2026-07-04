@@ -54,11 +54,19 @@ function updatePreview(skipElementId) {
 // Obfuscated ticker routine loop
 setInterval(() => {
     document.querySelectorAll('.mc-obfuscated').forEach(el => {
-        let originalText = el.getAttribute('data-text') || el.innerText;
+        // Cache original text structurally to avoid symbol degradation loops
+        if (!el._originalText) {
+            el._originalText = el.getAttribute('data-text') || el.innerText || "§k";
+        }
+        let originalText = el._originalText;
         let randomized = '';
         const pool = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+=-{}[]:;<>?,./';
+        
         for(let i = 0; i < originalText.length; i++) {
-            if (originalText[i] === ' ') {
+            if (originalText[i] === '§' || (i > 0 && originalText[i-1] === '§')) {
+                // Skip rendering section codes into text space visually
+                continue;
+            } else if (originalText[i] === ' ') {
                 randomized += ' ';
             } else if (originalText[i] === '\n') {
                 randomized += '\n';

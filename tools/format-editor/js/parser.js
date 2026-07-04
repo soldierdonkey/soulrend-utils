@@ -134,11 +134,6 @@ function convertNodeToMinecraft(node, activeTheme) {
                     let foundCode = Object.keys(colors).find(k => colors[k].toLowerCase() === colorHex);
                     if (foundCode) {
                         nextStyles.colorCode = foundCode;
-                        nextStyles.bold = false;
-                        nextStyles.italic = false;
-                        nextStyles.underline = false;
-                        nextStyles.strikethrough = false;
-                        nextStyles.obfuscated = false;
                     }
                 }
                 

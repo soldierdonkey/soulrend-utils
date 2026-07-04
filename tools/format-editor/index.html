@@ -9,7 +9,44 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Share+Tech+Mono&family=VT323&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            user-select: none;
+        }
+        .mc-font {
+            font-family: 'VT323', monospace !important;
+            font-size: 1.35rem;
+            line-height: 1.2;
+            letter-spacing: 0.5px;
+            image-rendering: pixelated;
+        }
+        .mc-obfuscated {
+            font-family: 'VT323', monospace !important;
+            display: inline-block;
+            text-align: center;
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f1015;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e202e;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #e11d48;
+        }
+        textarea {
+            user-select: text !important;
+        }
+        .prevent-select {
+            user-select: none;
+        }
+    </style>
 </head>
 <body class="h-full flex flex-col text-slate-100 overflow-hidden prevent-select">
 
@@ -91,7 +128,7 @@
                     <button onclick="injectFormat('§o')" class="px-2.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-xs italic font-mono text-slate-200" title="Italic">I</button>
                     <button onclick="injectFormat('§n')" class="px-2.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-xs underline font-mono text-slate-200" title="Underline">U</button>
                     <button onclick="injectFormat('§m')" class="px-2.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-xs line-through font-mono text-slate-200" title="Strikethrough">S</button>
-                    <button onclick="injectFormat('§k')" class="px-2 py-0.5 rounded bg-rose-950/40 hover:bg-rose-900/40 text-[10px] font-bold font-mono text-rose-400 border border-rose-900/30" title="Obfuscated">§k</button>
+                    <button onclick="injectFormat('§k')" class="mc-obfuscated px-2 py-0.5 rounded bg-rose-950/40 hover:bg-rose-900/40 text-[10px] font-bold text-rose-400 border border-rose-900/30" title="Obfuscated">§k</button>
                     <button onclick="injectFormat('§r')" class="px-2.5 py-0.5 rounded bg-red-950/40 hover:bg-red-900/40 text-xs font-mono text-red-400 border border-red-900/30" title="Reset">Reset</button>
                 </div>
             </div>
@@ -153,7 +190,7 @@
                     <button onclick="applyStyleToSelection('italic')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[11px] italic font-mono text-slate-200" title="Italic">I</button>
                     <button onclick="applyStyleToSelection('underline')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[11px] underline font-mono text-slate-200" title="Underline">U</button>
                     <button onclick="applyStyleToSelection('strikethrough')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[11px] line-through font-mono text-slate-200" title="Strikethrough">S</button>
-                    <button onclick="applyStyleToSelection('obfuscated')" class="px-1.5 py-0.5 rounded bg-rose-950/40 hover:bg-rose-900/40 text-[10px] font-bold font-mono text-rose-400 border border-rose-900/30" title="Obfuscated">§k</button>
+                    <button onclick="applyStyleToSelection('obfuscated')" class="mc-obfuscated px-1.5 py-0.5 rounded bg-rose-950/40 hover:bg-rose-900/40 text-[10px] font-bold text-rose-400 border border-rose-900/30" title="Obfuscated">§k</button>
                     <button onclick="applyStyleToSelection('reset')" class="px-2 py-0.5 rounded bg-red-950/40 hover:bg-red-900/40 text-[11px] font-mono text-red-400 border border-red-900/30" title="Reset">Reset</button>
                 </div>
             </div>

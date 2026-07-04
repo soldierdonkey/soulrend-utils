@@ -10,6 +10,9 @@ body {
     line-height: 1.2;
     letter-spacing: 0.5px;
     image-rendering: pixelated;
+    /* Force tabular spacing to prevent character jumping */
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum';
 }
 
 /* Custom Scrollbar for Dark Medieval Aesthetic */

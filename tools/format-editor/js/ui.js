@@ -103,34 +103,49 @@ function applyStyleToSelection(styleType, value) {
     
     if (!insidePreview || !targetEl) return;
     
-    const span = document.createElement('span');
-    if (styleType === 'color') {
-        const colors = currentTheme === 'parchment' ? parchmentColors : mcColors;
-        span.style.color = colors[value] || '#ffffff';
-    } else if (styleType === 'bold') {
-        span.style.fontWeight = 'bold';
-    } else if (styleType === 'italic') {
-        span.style.fontStyle = 'italic';
-    } else if (styleType === 'underline') {
-        span.style.textDecoration = 'underline';
-    } else if (styleType === 'strikethrough') {
-        span.style.textDecoration = 'line-through';
-    } else if (styleType === 'obfuscated') {
-        span.classList.add('mc-obfuscated');
-        span.setAttribute('data-text', range.toString());
-    } else if (styleType === 'reset') {
-        span.setAttribute('data-mce-reset', 'true');
-        span.style.color = currentTheme === 'parchment' ? '#2c1d11' : '#ffffff';
-    }
-    
+    // Multi-style selection protection: use native command runner if extracting raw DOM components directly fails
     try {
+        const span = document.createElement('span');
+        if (styleType === 'color') {
+            const colors = currentTheme === 'parchment' ? parchmentColors : mcColors;
+            span.style.color = colors[value] || '#ffffff';
+        } else if (styleType === 'bold') {
+            span.style.fontWeight = 'bold';
+        } else if (styleType === 'italic') {
+            span.style.fontStyle = 'italic';
+        } else if (styleType === 'underline') {
+            span.style.textDecoration = 'underline';
+        } else if (styleType === 'strikethrough') {
+            span.style.textDecoration = 'line-through';
+        } else if (styleType === 'obfuscated') {
+            span.classList.add('mc-obfuscated');
+            span.setAttribute('data-text', range.toString());
+        } else if (styleType === 'reset') {
+            span.setAttribute('data-mce-reset', 'true');
+            span.style.color = currentTheme === 'parchment' ? '#2c1d11' : '#ffffff';
+        }
+        
         span.appendChild(range.extractContents());
         range.insertNode(span);
-        selection.removeAllRanges();
     } catch (e) {
-        console.error("Two-way highlight styling failed:", e);
+        // Fallback execution context for cross-boundary selections spanning multiple structures
+        if (styleType === 'color') {
+            const colors = currentTheme === 'parchment' ? parchmentColors : mcColors;
+            document.execCommand('foreColor', false, colors[value] || '#ffffff');
+        } else if (styleType === 'bold') {
+            document.execCommand('bold', false, null);
+        } else if (styleType === 'italic') {
+            document.execCommand('italic', false, null);
+        } else if (styleType === 'underline') {
+            document.execCommand('underline', false, null);
+        } else if (styleType === 'strikethrough') {
+            document.execCommand('strikeThrough', false, null);
+        } else if (styleType === 'reset') {
+            document.execCommand('removeFormat', false, null);
+        }
     }
     
+    selection.removeAllRanges();
     triggerPreviewSync(targetEl);
 }
 
