@@ -54,9 +54,8 @@ function updatePreview(skipElementId) {
 // Obfuscated ticker routine loop
 setInterval(() => {
     document.querySelectorAll('.mc-obfuscated').forEach(el => {
-        // Cache original text structurally to avoid symbol degradation loops
         if (!el._originalText) {
-            el._originalText = el.getAttribute('data-text') || el.innerText || "§k";
+            el._originalText = el.getAttribute('data-obfuscate-template') || el.getAttribute('data-text') || el.innerText || "obf";
         }
         let originalText = el._originalText;
         let randomized = '';
@@ -64,17 +63,19 @@ setInterval(() => {
         
         for(let i = 0; i < originalText.length; i++) {
             if (originalText[i] === '§' || (i > 0 && originalText[i-1] === '§')) {
-                // Skip rendering section codes into text space visually
                 continue;
             } else if (originalText[i] === ' ') {
                 randomized += ' ';
-            } else if (originalText[i] === '\n') {
-                randomized += '\n';
             } else {
                 randomized += pool[Math.floor(Math.random() * pool.length)];
             }
         }
-        el.innerHTML = randomized;
+        
+        if (randomized.length === 0 && originalText.length > 0) {
+            randomized = pool[Math.floor(Math.random() * pool.length)];
+        }
+        
+        el.innerText = randomized;
     });
 }, 80);
 

@@ -79,6 +79,34 @@ function clearAllFields() {
 }
 
 /**
+ * Calculates character offset inside a node relative to its root text content container
+ */
+function getTextSelectionOffset(root, targetNode, targetOffset) {
+    let currentOffset = 0;
+    let found = false;
+
+    function walk(currentNode) {
+        if (found) return;
+        if (currentNode === targetNode) {
+            currentOffset += targetOffset;
+            found = true;
+            return;
+        }
+        if (currentNode.nodeType === 3) {
+            currentOffset += currentNode.nodeValue.length;
+        } else {
+            for (let child of currentNode.childNodes) {
+                walk(child);
+                if (found) return;
+            }
+        }
+    }
+
+    walk(root);
+    return currentOffset;
+}
+
+/**
  * Applies a visual styling tag onto selected text nodes inside a contenteditable rendering wrapper
  */
 function applyStyleToSelection(styleType, value) {
@@ -86,7 +114,7 @@ function applyStyleToSelection(styleType, value) {
     if (!selection.rangeCount) return;
     
     const range = selection.getRangeAt(0);
-    if (range.collapsed) return; // Requires an active highlight block
+    if (range.collapsed) return;
     
     let node = range.commonAncestorContainer;
     let insidePreview = false;
@@ -103,50 +131,75 @@ function applyStyleToSelection(styleType, value) {
     
     if (!insidePreview || !targetEl) return;
     
-    // Multi-style selection protection: use native command runner if extracting raw DOM components directly fails
-    try {
-        const span = document.createElement('span');
-        if (styleType === 'color') {
-            const colors = currentTheme === 'parchment' ? parchmentColors : mcColors;
-            span.style.color = colors[value] || '#ffffff';
-        } else if (styleType === 'bold') {
-            span.style.fontWeight = 'bold';
-        } else if (styleType === 'italic') {
-            span.style.fontStyle = 'italic';
-        } else if (styleType === 'underline') {
-            span.style.textDecoration = 'underline';
-        } else if (styleType === 'strikethrough') {
-            span.style.textDecoration = 'line-through';
-        } else if (styleType === 'obfuscated') {
-            span.classList.add('mc-obfuscated');
-            span.setAttribute('data-text', range.toString());
-        } else if (styleType === 'reset') {
-            span.setAttribute('data-mce-reset', 'true');
-            span.style.color = currentTheme === 'parchment' ? '#2c1d11' : '#ffffff';
+    // Get the plain text boundaries of what the user highlighted
+    const startTxtOffset = getTextSelectionOffset(targetEl, range.startContainer, range.startOffset);
+    const endTxtOffset = getTextSelectionOffset(targetEl, range.endContainer, range.endOffset);
+    
+    // Convert current DOM structure back to a raw sequence with formatting tokens
+    const fullRawMinecraftText = convertNodeToMinecraft(targetEl, currentTheme);
+    
+    // Translate the plain-text bounds into the matching index positions within the raw section-marked string
+    let mcStartIdx = -1;
+    let mcEndIdx = -1;
+    let textCharCount = 0;
+    let i = 0;
+    
+    while (i < fullRawMinecraftText.length) {
+        if (textCharCount === startTxtOffset && mcStartIdx === -1) {
+            mcStartIdx = i;
+        }
+        if (textCharCount === endTxtOffset && mcEndIdx === -1) {
+            mcEndIdx = i;
         }
         
-        span.appendChild(range.extractContents());
-        range.insertNode(span);
-    } catch (e) {
-        // Fallback execution context for cross-boundary selections spanning multiple structures
-        if (styleType === 'color') {
-            const colors = currentTheme === 'parchment' ? parchmentColors : mcColors;
-            document.execCommand('foreColor', false, colors[value] || '#ffffff');
-        } else if (styleType === 'bold') {
-            document.execCommand('bold', false, null);
-        } else if (styleType === 'italic') {
-            document.execCommand('italic', false, null);
-        } else if (styleType === 'underline') {
-            document.execCommand('underline', false, null);
-        } else if (styleType === 'strikethrough') {
-            document.execCommand('strikeThrough', false, null);
-        } else if (styleType === 'reset') {
-            document.execCommand('removeFormat', false, null);
+        if (fullRawMinecraftText[i] === '§' && i + 1 < fullRawMinecraftText.length) {
+            i += 2;
+        } else {
+            textCharCount++;
+            i++;
         }
+    }
+    if (mcStartIdx === -1) mcStartIdx = 0;
+    if (mcEndIdx === -1) mcEndIdx = fullRawMinecraftText.length;
+    
+    // Format type parsing translation layer
+    let generatedTag = '';
+    if (styleType === 'color') {
+        generatedTag = '§' + value;
+    } else if (styleType === 'bold') {
+        generatedTag = '§l';
+    } else if (styleType === 'italic') {
+        generatedTag = '§o';
+    } else if (styleType === 'underline') {
+        generatedTag = '§n';
+    } else if (styleType === 'strikethrough') {
+        generatedTag = '§m';
+    } else if (styleType === 'obfuscated') {
+        generatedTag = '§k';
+    } else if (styleType === 'reset') {
+        generatedTag = '§r';
+    }
+    
+    // Reconstruct the master format string using the updated parser engine routine rules
+    const localizedUpdatedMcText = modifyMinecraftStringSelection(fullRawMinecraftText, mcStartIdx, mcEndIdx, generatedTag);
+    
+    // Update the master input form references
+    const id = targetEl.id;
+    let inputEl = null;
+    if (id === 'preview-tooltip-title' || id === 'preview-parchment-title') {
+        inputEl = document.getElementById('input-title');
+    } else if (id === 'preview-tooltip-subtitle' || id === 'preview-chat-status' || id === 'preview-parchment-subtitle') {
+        inputEl = document.getElementById('input-subtitle');
+    } else if (id === 'preview-tooltip' || id === 'preview-chat' || id === 'preview-parchment') {
+        inputEl = document.getElementById('editor-box');
+    }
+    
+    if (inputEl) {
+        inputEl.value = localizedUpdatedMcText;
     }
     
     selection.removeAllRanges();
-    triggerPreviewSync(targetEl);
+    updatePreview();
 }
 
 /**

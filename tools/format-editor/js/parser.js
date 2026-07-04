@@ -64,11 +64,16 @@ function parseMinecraft(text, activeTheme) {
 
             let classes = [];
             if (currentStyles.obfuscated) classes.push('mc-obfuscated');
-            
             let classStr = classes.length > 0 ? ` class="${classes.join(' ')}"` : '';
-            let dataTextStr = currentStyles.obfuscated ? ` data-text="${escapedChunk}"` : '';
             
-            html += `<span style="${styleStr}"${classStr}${dataTextStr}>${escapedChunk}</span>`;
+            // To maintain compatibility with line breaks AND nested modifiers, split every chunk by line
+            let lines = escapedChunk.split('\n');
+            let linesHtml = lines.map(lineStr => {
+                let dataTextStr = currentStyles.obfuscated ? ` data-text="${lineStr}"` : '';
+                return `<span style="${styleStr}"${classStr}${dataTextStr}>${lineStr}</span>`;
+            });
+            
+            html += linesHtml.join('<br>');
         }
     }
     return html;
@@ -226,4 +231,41 @@ function cleanOverwrittenCodes(text) {
         
         return finalCodes.join('');
     });
+}
+
+/**
+ * Injects a formatting sequence over a precise substring range, stripping intermediate formatting tokens, 
+ * and tracking formatting states to automatically restore trailing styling configurations.
+ */
+function modifyMinecraftStringSelection(text, startIdx, endIdx, newTag) {
+    let beforePart = text.substring(0, startIdx);
+    let selectionPart = text.substring(startIdx, endIdx);
+    let afterPart = text.substring(endIdx);
+    
+    let trackingColor = 'r';
+    let currentStyles = [];
+    let i = 0;
+    
+    while (i < endIdx) {
+        if (text[i] === '§' && i + 1 < text.length) {
+            let code = text[i + 1].toLowerCase();
+            if ((code >= '0' && code <= '9') || (code >= 'a' && code <= 'f') || code === 'r') {
+                trackingColor = code;
+                currentStyles = [];
+            } else if (['k', 'l', 'm', 'n', 'o'].includes(code)) {
+                if (!currentStyles.includes(code)) currentStyles.push(code);
+            }
+            i += 2;
+        } else {
+            i++;
+        }
+    }
+    
+    let endColorRestoration = '§' + trackingColor;
+    currentStyles.forEach(styleCode => {
+        endColorRestoration += '§' + styleCode;
+    });
+
+    let cleanedSelection = selectionPart.replace(/§[0-9a-fk-or]/gi, '');
+    return beforePart + newTag + cleanedSelection + endColorRestoration + afterPart;
 }
